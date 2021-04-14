@@ -2,8 +2,8 @@
   <div class="headers">
     <div class="left"></div>
     <div class="right" style="pointer-events: auto">
-      <button class="wallet" @click="login">
-        <p>{{ users.isconnect ? users.account : "Connect to a wallet" }}</p>
+      <button class="wallet" @click="gotologin">
+        <p>{{ users.isconnect ? users.account : "登录" }}</p>
       </button>
     </div>
   </div>
@@ -23,8 +23,10 @@ export default {
     }
   },
   methods: {
-    login () {
-      this.$store.dispatch('login')
+    gotologin () {
+      this.$router.push({
+        path: '/login'
+      })
     }
   }
 }
