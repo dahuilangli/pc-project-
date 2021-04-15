@@ -1,20 +1,70 @@
 <template>
   <div class="headers">
-    <div class="left"></div>
+    <div class="left">
+      <a href="." class="logo"
+        ><div class="sc-eMigcr gttaSL">
+          <img width="24px" alt="logo" /></div
+      ></a>
+      <div class="menulist">
+        <router-link
+          v-for="(item, index) in navigations"
+          :key="item.value"
+          :to="{ path: item.path, query: { item: index } }"
+          :class="{ ACTIVE: ind == index }"
+          @click.native="changeBgc(index)"
+          class="ekMhAQ"
+        >
+          {{ item.label }}
+        </router-link>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="http://www.baidu.com"
+          class="jhGKTi"
+        >
+          Charts <span style="font-size: 11px">↗</span>
+        </a>
+      </div>
+    </div>
     <div class="right" style="pointer-events: auto">
       <button class="wallet" @click="gotologin">
         <p>{{ users.isconnect ? users.account : "登录" }}</p>
       </button>
     </div>
+    <login :show.sync="show" />
   </div>
 </template>
 
 <script>
+import { getUrlKey } from '../utils/util'
+import login from './login'
 export default {
   name: 'headers',
+  components: {
+    login
+  },
   data () {
     return {
-      account: null
+      show: false,
+      ind: 0,
+      navigations: [
+        {
+          label: '首页',
+          path: '/home'
+        },
+        {
+          label: '交易',
+          path: '/transaction'
+        },
+        {
+          label: 'K线',
+          path: '/kline'
+        },
+        {
+          label: '矿池',
+          path: '/pool'
+        }
+      ]
     }
   },
   computed: {
@@ -22,11 +72,27 @@ export default {
       return this.$store.state.user
     }
   },
+  mounted () {
+    if (this.$route.query.item) {
+      this.ind = this.$route.query.item
+    } else if (getUrlKey('item', location.href) <= this.navigations.length) {
+      this.ind = getUrlKey('item', location.href)
+    } else {
+      this.$router.push({
+        path: '/home',
+        query: {
+          item: 0
+        }
+      })
+      this.ind = 0
+    }
+  },
   methods: {
     gotologin () {
-      this.$router.push({
-        path: '/login'
-      })
+      this.show = true
+    },
+    changeBgc (index) {
+      this.ind = index
     }
   }
 }
@@ -44,7 +110,7 @@ export default {
   top: 0px;
   position: relative;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1rem;
+  padding: 0rem;
   z-index: 2;
 }
 .headers .left {
@@ -58,6 +124,63 @@ export default {
   -webkit-box-pack: start;
   justify-content: flex-start;
   width: fit-content;
+}
+.headers .left .logo {
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  pointer-events: auto;
+  justify-self: flex-start;
+  margin-right: 12px;
+}
+.headers .left .menulist {
+  box-sizing: border-box;
+  margin: 0px;
+  min-width: 0px;
+  width: 100%;
+  display: flex;
+  padding: 0px;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+}
+.ekMhAQ {
+  display: flex;
+  flex-flow: row nowrap;
+  border-radius: 3rem;
+  outline: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: rgb(86, 90, 105);
+  font-size: 1rem;
+  width: fit-content;
+  margin: 0px 12px;
+  font-weight: 500;
+}
+.ekMhAQ.ACTIVE {
+  border-radius: 12px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+}
+.jhGKTi {
+  display: flex;
+  flex-flow: row nowrap;
+  border-radius: 3rem;
+  outline: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: rgb(86, 90, 105);
+  font-size: 1rem;
+  width: fit-content;
+  margin: 0px 12px;
+  font-weight: 500;
+}
+.jhGKTi:hover,
+.jhGKTi:focus {
+  color: rgb(0, 0, 0);
+  outline: none;
+  text-decoration: underline;
 }
 .headers .right {
   display: flex;
@@ -108,6 +231,7 @@ p {
   width: fit-content;
   font-weight: 500;
 }
+
 @media only screen and (max-width: 1199px) {
 }
 </style>

@@ -2,8 +2,8 @@ import AESCipher from './aes'
 const key = 'TEST-KEY=ztcmvr8ko2cibtja4wocr5sqkfcdeceu'
 const aes = new AESCipher(key)
 
-export function setToken (item) {
-  localStorage.setItem(aes.decode_data(item))
+export function setToken (item, privateKey) {
+  localStorage.setItem(item, aes.decode_data(privateKey))
 };
 
 export function getToken (item) {

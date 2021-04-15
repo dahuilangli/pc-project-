@@ -8,6 +8,7 @@ Router.prototype.push = function push (location) {
   return originalPush.call(this, location).catch(err => err)
 }
 export default new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
@@ -19,9 +20,19 @@ export default new Router({
       component: resolve => require(['@/page/home'], resolve)
     },
     {
-      path: '/login',
-      name: 'login',
-      component: resolve => require(['@/page/login'], resolve)
+      path: '/kline',
+      name: 'kline',
+      component: resolve => require(['@/page/kline'], resolve)
+    },
+    {
+      path: '/transaction',
+      name: 'transaction',
+      component: resolve => require(['@/page/transaction'], resolve)
+    },
+    {
+      path: '/pool',
+      name: 'pool',
+      component: resolve => require(['@/page/pool'], resolve)
     }
   ]
 })

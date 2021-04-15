@@ -17,10 +17,15 @@ const user = {
   },
   actions: {
     // 登录
-    Login ({commit, state}) {
-      return new Promise(resolve => {
-        setToken()
-        resolve()
+    Login ({commit, state}, userInfo) {
+      return new Promise((resolve, reject) => {
+        console.log(userInfo)
+        setToken(userInfo).then((result) => {
+          commit('SET_USER', userInfo)
+          resolve()
+        }).catch((err) => {
+          reject(err)
+        })
       })
     },
     // 前端 登出
