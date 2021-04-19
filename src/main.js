@@ -13,8 +13,7 @@ Vue.use(ElementUI)
 
 Vue.config.productionTip = false
 
-Vue.prototype.$rippleApi = global.api
-Vue.prototype.$rippleAccount = global.rippleAccount
+Vue.prototype.$rippleApi = global
 
 /* eslint-disable no-new */
 new Vue({

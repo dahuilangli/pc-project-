@@ -33,7 +33,7 @@ class AESCipher {
     /**
      *解密
      */
-
+    console.log('解密开始')
     let encdata = URLSafeBase64.decode(enc)
     let cryptkey = crypto.createHash('sha256').update(this.key, 'utf8').digest().slice(0, 16)
     let iv = encdata.slice(0, 16)

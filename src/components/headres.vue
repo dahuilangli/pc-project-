@@ -28,7 +28,17 @@
     </div>
     <div class="right" style="pointer-events: auto">
       <button class="wallet" @click="gotologin">
-        <p>{{ users.isconnect ? users.account : "登录" }}</p>
+        <p v-if="!users.isLogin">登录</p>
+        <el-dropdown
+         v-else
+         >
+          <p class="el-dropdown-link">{{ users.account }}</p>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>黄金糕</el-dropdown-item>
+            <el-dropdown-item>狮子头</el-dropdown-item>
+            <el-dropdown-item>螺蛳粉</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </button>
     </div>
     <login :show.sync="show" />
@@ -89,7 +99,10 @@ export default {
   },
   methods: {
     gotologin () {
-      this.show = true
+      if (!this.users.isLogin) {
+        this.show = true
+      } else {
+      }
     },
     changeBgc (index) {
       this.ind = index
@@ -221,7 +234,7 @@ export default {
   color: rgb(230, 0, 110);
 }
 
-p {
+p, .el-dropdown  {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -230,8 +243,14 @@ p {
   font-size: 1rem;
   width: fit-content;
   font-weight: 500;
+  color: rgb(255, 0, 122);
 }
-
+.el-dropdown-link {
+  width: unset;
+}
+.el-dropdown-menu {
+  width: 200px;
+}
 @media only screen and (max-width: 1199px) {
 }
 </style>

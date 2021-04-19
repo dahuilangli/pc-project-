@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { formatXrpBalanceToShow, formatBalanceToShow } from '../utils/ripple'
+// import { formatXrpBalanceToShow, formatBalanceToShow } from '../utils/ripple'
 export default {
   name: 'Home',
   data () {
@@ -14,32 +14,44 @@ export default {
   // 加载账号余额
   created () {
     this.getAccountAssets()
-    this.getHandicap()
+    // this.getHandicap()
   },
   methods: {
     async getAccountAssets () {
       // 加载资产
+      this.$rippleAccount.account = 'rESrgBXFh78Fa2e2DYjMetv5nqURTYozoy'
       var account = this.$rippleAccount.account
       var ripple = this.$rippleApi
       if (!ripple.isConnected()) {
         await ripple.connect().then((res) => {})
       }
-      await this.$rippleApi.request('account_info', {
-        'account': account
-      }).then((res) => {
-        var xrpBalance = formatXrpBalanceToShow(res.account_data.Balance)
-        console.log('xrp => ' + xrpBalance)
-        this.$rippleApi.request('account_lines', {
-          'account': account
-        }).then((res) => {
-          var lines = res.lines
-          lines.forEach(function (value) {
-            console.log(value.account + ' => ' + formatBalanceToShow(value.balance))
-          })
-        })
-      }).catch((e) => {
-        alert(e.message)
+      await this.$rippleApi.getBalances(account).then(res => {
+        console.log(res)
+        // this.$rippleApi.request('account_lines', {
+        //   'account': account
+        // }).then((res) => {
+        //   var lines = res.lines
+        //   lines.forEach(function (value) {
+        //     console.log(value.account + ' => ' + formatBalanceToShow(value.balance))
+        //   })
+        // })
       })
+      // await this.$rippleApi.request('account_info', {
+      //   'account': account
+      // }).then((res) => {
+      //   var xrpBalance = formatXrpBalanceToShow(res.account_data.Balance)
+      //   console.log('xrp => ' + xrpBalance)
+      //   this.$rippleApi.request('account_lines', {
+      //     'account': account
+      //   }).then((res) => {
+      //     var lines = res.lines
+      //     lines.forEach(function (value) {
+      //       console.log(value.account + ' => ' + formatBalanceToShow(value.balance))
+      //     })
+      //   })
+      // }).catch((e) => {
+      //   alert(e.message)
+      // })
     },
     // 盘口数据
     async getHandicap () {

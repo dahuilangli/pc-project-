@@ -19,18 +19,18 @@
         class="demo-ruleForm login-page"
       >
         <h3 class="title">账户登录</h3>
-        <el-form-item prop="username">
+        <el-form-item prop="account">
           <el-input
             type="text"
-            v-model="ruleForm.username"
+            v-model="ruleForm.account"
             auto-complete="off"
             placeholder="账户"
           ></el-input>
         </el-form-item>
-        <el-form-item prop="password">
+        <el-form-item prop="secret">
           <el-input
-            type="password"
-            v-model="ruleForm.password"
+            type="secret"
+            v-model="ruleForm.secret"
             auto-complete="off"
             placeholder="私钥"
           ></el-input>
@@ -81,18 +81,18 @@ export default {
       visible: this.show,
       logining: false,
       ruleForm: {
-        username: '',
-        password: ''
+        account: 'rpfPj11MbGwSzvCYzmJ86eiaGsGFBA8bCL',
+        secret: 'shPQ3KV9fE4b9vLThfC9poqR4yUS7'
       },
       rules: {
-        username: [
+        account: [
           {
             required: true,
             validator: stoneAccount,
             trigger: 'blur'
           }
         ],
-        password: [{ required: true, message: '私钥不能为空', trigger: 'blur' }]
+        secret: [{ required: true, message: '私钥不能为空', trigger: 'blur' }]
       }
     }
   },
