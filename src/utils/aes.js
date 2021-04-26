@@ -41,7 +41,8 @@ class AESCipher {
     let decipher = crypto.createDecipheriv('aes-128-cbc', cryptkey, iv)
     decipher.setAutoPadding(true)
     let datajson = Buffer.concat([decipher.update(encdata, 'utf8'), decipher.final()]).toString('utf8')
-    return JSON.parse(datajson)
+    console.log(datajson)
+    return datajson
   }
 }
 

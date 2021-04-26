@@ -16,37 +16,36 @@
         >
           {{ item.label }}
         </router-link>
-        <a
+        <!-- <a
           target="_blank"
           rel="noopener noreferrer"
           href="http://www.baidu.com"
           class="jhGKTi"
         >
           Charts <span style="font-size: 11px">↗</span>
-        </a>
+        </a> -->
       </div>
     </div>
     <div class="right" style="pointer-events: auto">
-      <button class="wallet" @click="gotologin">
-        <p v-if="!users.isLogin">登录</p>
-        <el-dropdown
-         v-else
-         >
-          <p class="el-dropdown-link">{{ users.account }}</p>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>黄金糕</el-dropdown-item>
-            <el-dropdown-item>狮子头</el-dropdown-item>
-            <el-dropdown-item>螺蛳粉</el-dropdown-item>
+      <button v-if="!users.isLogin" class="wallet" @click="gotologin">
+        <p>登录</p>
+      </button>
+      <span v-else class="wallet" >
+        <el-dropdown trigger="click">
+          <span class="el-dropdown-link">
+            {{ users.account }} <i class="el-icon-arrow-down el-icon--right"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown" style="top: 47px;">
+            <el-dropdown-item icon="el-icon-pie-chart">我的资产</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-      </button>
+      </span>
     </div>
     <login :show.sync="show" />
   </div>
 </template>
 
 <script>
-import { getUrlKey } from '../utils/util'
 import login from './login'
 export default {
   name: 'headers',
@@ -85,8 +84,8 @@ export default {
   mounted () {
     if (this.$route.query.item) {
       this.ind = this.$route.query.item
-    } else if (getUrlKey('item', location.href) <= this.navigations.length) {
-      this.ind = getUrlKey('item', location.href)
+    } else if (this.$util.getUrlKey('item', location.href) <= this.navigations.length) {
+      this.ind = this.$util.getUrlKey('item', location.href)
     } else {
       this.$router.push({
         path: '/home',
@@ -99,10 +98,7 @@ export default {
   },
   methods: {
     gotologin () {
-      if (!this.users.isLogin) {
-        this.show = true
-      } else {
-      }
+      this.show = true
     },
     changeBgc (index) {
       this.ind = index
@@ -110,6 +106,12 @@ export default {
   }
 }
 </script>
+<style lang="scss">
+  @import "@/styles/_style.scss";
+  .headers {
+    background: $default-card-title;
+  }
+</style>
 <style scoped>
 .headers {
   display: grid;
@@ -165,16 +167,16 @@ export default {
   outline: none;
   cursor: pointer;
   text-decoration: none;
-  color: rgb(86, 90, 105);
   font-size: 1rem;
   width: fit-content;
   margin: 0px 12px;
   font-weight: 500;
+  color: aliceblue;
 }
 .ekMhAQ.ACTIVE {
   border-radius: 12px;
   font-weight: 600;
-  color: rgb(0, 0, 0);
+  color: #4F57EA;
 }
 .jhGKTi {
   display: flex;
@@ -183,7 +185,6 @@ export default {
   outline: none;
   cursor: pointer;
   text-decoration: none;
-  color: rgb(86, 90, 105);
   font-size: 1rem;
   width: fit-content;
   margin: 0px 12px;
@@ -191,9 +192,9 @@ export default {
 }
 .jhGKTi:hover,
 .jhGKTi:focus {
-  color: rgb(0, 0, 0);
   outline: none;
   text-decoration: underline;
+  color: #4F57EA;
 }
 .headers .right {
   display: flex;
@@ -234,7 +235,8 @@ export default {
   color: rgb(230, 0, 110);
 }
 
-p, .el-dropdown  {
+p,
+.el-dropdown {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -243,13 +245,15 @@ p, .el-dropdown  {
   font-size: 1rem;
   width: fit-content;
   font-weight: 500;
-  color: rgb(255, 0, 122);
 }
 .el-dropdown-link {
   width: unset;
 }
 .el-dropdown-menu {
   width: 200px;
+}
+.el-dropdown-menu {
+  top: 47px;
 }
 @media only screen and (max-width: 1199px) {
 }

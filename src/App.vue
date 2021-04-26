@@ -7,7 +7,6 @@
       <el-main>
         <router-view />
       </el-main>
-      <el-footer>Footer</el-footer>
     </el-container>
   </div>
 </template>
@@ -22,13 +21,26 @@ export default {
 }
 </script>
 
+<style lang="scss">
+@import "@/styles/_style.scss";
+body {
+  background: $default-bg;
+}
+#app {
+  .container {
+    width: 100%;
+    background: $default-card-body;
+  }
+}
+</style>
+
 <style>
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: #ffffff;
   width: 100vw;
 }
 
@@ -38,16 +50,32 @@ export default {
   width: 100%;
   -webkit-box-pack: justify;
   justify-content: space-between;
+  background: #12132a;
 }
 .el-main {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding-top: 100px;
   -webkit-box-align: center;
   align-items: center;
   flex: 1 1 0%;
   overflow: hidden auto;
   z-index: 1;
+  padding: unset;
+}
+.el-textarea__inner,
+.el-input__inner,
+.el-input-number .el-input__inner {
+  background: transparent;
+  text-align: left;
+}
+
+.el-input-number__decrease,
+.el-input-number__increase {
+  background: transparent;
+  text-align: center;
+}
+.el-input__suffix {
+  right: 38px;
 }
 </style>
