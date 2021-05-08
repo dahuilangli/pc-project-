@@ -6,14 +6,17 @@ class socket {
     this.messageMap = {}
     this.connState = 0 // 连接状态
     this.socket = null
+    this.heartBeatTimer = null
   }
   doOpen () { // TODO: 开启websocket连接
+    console.log('我被调用了--doOpen')
     if (this.connState) {
       return
     }
     this.connState = 1
     const BrowserWebSocket = window.WebSocket || window.MozWebSocket
     const socket = new BrowserWebSocket(this.url)
+    // socket.binaryType = 'arraybuffer'
     const _this = this
     socket.onopen = (e) => {
       return _this.onOpen(e)
@@ -32,6 +35,7 @@ class socket {
   onOpen (e) { // TODO: 连接打开
     this.connState = 2
     // this.heartCheck.start(this.socket);
+    this.heartBeatTimer = setInterval(this.checkHeartbeat.bind(this), 20000)
     this.onReceiver({ Event: 'open' })
   }
   onMessage (e) { // TODO: 接收websocket推送信息
@@ -86,11 +90,18 @@ class socket {
   doClose () { // TODO: 主动关闭websocket
     this.socket.close()
   }
+  checkHeartbeat () {
+    var data = {
+      'cmd': 'ping',
+      'args': [Date.parse(new Date())]
+    }
+    this.send(data)
+  };
   destroy () { // TODO: 销毁websocket
-    // if (this.heartBeatTimer) {
-    //     clearInterval(this.heartBeatTimer);
-    //     this.heartBeatTimer = null;
-    // }
+    if (this.heartBeatTimer) {
+      clearInterval(this.heartBeatTimer)
+      this.heartBeatTimer = null
+    }
     this.doClose()
     this.messageMap = {}
     this.connState = 0

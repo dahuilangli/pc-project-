@@ -6,8 +6,19 @@
 import TVjsApi from './api/index'
 let jsApi = null // TODO: 图表配置项
 export default {
+  props: {
+    coin: {
+      type: String,
+      default: 'STO/USDT'
+    }
+  },
+  computed: {
+    coins () {
+      return this.coin.split('/')
+    }
+  },
   mounted () {
-    jsApi = new TVjsApi('GXC-USDT')
+    jsApi = new TVjsApi(`${this.coins[0]}-${this.coins[1]}`)
     jsApi.init() // 图表初始化
   },
   methods: {

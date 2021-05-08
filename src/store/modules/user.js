@@ -8,7 +8,8 @@ const user = {
     privateKey: 'TEST-KEY=ztcmvr8ko2cibtja4wocr5sqkfcdeceu',
     isLogin: getToken('ADMIN') !== null ? getToken('ADMIN').isLogin : false,
     account: getToken('ADMIN') !== null ? getToken('ADMIN').account : '',
-    secret: getToken('ADMIN') !== null ? getToken('ADMIN').secret : ''
+    secret: getToken('ADMIN') !== null ? getToken('ADMIN').secret : '',
+    balances: []
   },
   mutations: {
     SET_USER: (state, userInfo) => {
@@ -20,6 +21,9 @@ const user = {
       state.account = ''
       state.secret = ''
       state.isLogin = false
+    },
+    SET_BAANCES: (state, balances) => {
+      state.balances = balances
     }
   },
   actions: {
@@ -46,6 +50,13 @@ const user = {
       return new Promise(resolve => {
         commit('RESET_USER')
         removeToken('ADMIN')
+        resolve()
+      })
+    },
+    // 资产存储
+    SetBalances ({commit}, balances) {
+      return new Promise(resolve => {
+        commit('SET_BAANCES', balances)
         resolve()
       })
     }

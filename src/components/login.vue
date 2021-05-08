@@ -1,5 +1,4 @@
 <template>
-  <div>
     <el-dialog
       top="25vh"
       :visible.sync="visible"
@@ -46,7 +45,6 @@
         </el-form-item>
       </el-form>
     </el-dialog>
-  </div>
 </template>
 
 <script>
@@ -124,12 +122,17 @@ export default {
   }
 }
 </script>
-<style lang="css">
+<style lang="scss">
+@import "@/styles/_style.scss";
 .warp_dialog {
   width: 30% !important;
-}
-h3 {
-  padding: 0px 0px 10px 0px;
+  background: $default-bg;
+  h3 {
+    padding: 0px 0px 10px 0px;
+  }
+  .el-input__suffix {
+    right: 0;
+  }
 }
 @media only screen and (max-width: 1199px) {
   .warp_dialog {

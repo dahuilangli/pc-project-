@@ -1,21 +1,39 @@
 <template>
   <el-tabs v-model="activeName" @tab-click="handleClick">
     <el-tab-pane label="当前委托" name="current">
-      <el-table :data="currentCommission" style="width: 100%">
-        <el-table-column
-          label="类型"
-          align="left"
-        >
+      <el-table
+        :data="currentIntrust"
+        style="width: 100%"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
+        <el-table-column label="类型" align="left">
           <template slot-scope="scope">
             <div>
-              {{ scope.row.specification.direction === 'sell' ? '卖出' : '买入' }}
-              {{ $util.replaceCurrency(scope.row.specification.quantity.currency) }} / {{ $util.replaceCurrency(scope.row.specification.totalPrice.currency) }}
+              {{
+                scope.row.specification.direction === "sell" ? "卖出" : "买入"
+              }}
+              {{
+                $util.replaceCurrency(scope.row.specification.quantity.currency)
+              }}
+              /
+              {{
+                $util.replaceCurrency(
+                  scope.row.specification.totalPrice.currency
+                )
+              }}
             </div>
           </template>
         </el-table-column>
         <el-table-column label="委托价格" align="center">
           <template slot-scope="scope">
-            {{ scope.row.specification.direction === 'sell' ? scope.row.properties.makerExchangeRate : $h.Div(scope.row.specification.totalPrice.value, scope.row.specification.quantity.value) }}
+            {{
+              scope.row.specification.direction === "sell"
+                ? scope.row.properties.makerExchangeRate
+                : $h.Div(
+                    scope.row.specification.totalPrice.value,
+                    scope.row.specification.quantity.value
+                  )
+            }}
           </template>
         </el-table-column>
         <el-table-column prop="quantity" label="委托数量" align="center">
@@ -34,12 +52,69 @@
         </el-table-column>-->
         <el-table-column label="操作" align="right">
           <template slot-scope="scope">
-            <a href="javascript:void(0);" @click="orderCancell(scope)" style="color: #4F57EA;">撤单</a>
+            <a
+              href="javascript:void(0);"
+              @click="orderCancell(scope)"
+              style="color: #4f57ea"
+              >撤单</a
+            >
           </template>
         </el-table-column>
       </el-table>
     </el-tab-pane>
-    <el-tab-pane label="历史委托" name="history">历史委托</el-tab-pane>
+    <el-tab-pane label="历史成交" name="history">
+      <el-table
+        :data="historyIntrust"
+        style="width: 100%"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
+        <el-table-column label="类型" align="left">
+          <template slot-scope="scope">
+            <div>
+              {{
+                scope.row.specification.direction === "sell" ? "卖出" : "买入"
+              }}
+              {{$util.replaceCurrency(scope.row.specification.quantity.currency)}}/
+              {{ $util.replaceCurrency(scope.row.specification.totalPrice.currency)}}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="成交时间" align="center">
+          <template slot-scope="scope">
+            {{
+              $util.formatUTC(
+                scope.row.outcome.timestamp,
+                "{y}-{m}-{d} {h}:{i}:{s}"
+              )
+            }}
+          </template>
+        </el-table-column>
+        <el-table-column label="委托价格" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.unit.uPrice }}
+          </template>
+        </el-table-column>
+        <el-table-column label="委托数量" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.unit.quantity }}
+          </template>
+        </el-table-column>
+        <el-table-column label="成交总额" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.unit.tPrice }}
+          </template>
+        </el-table-column>
+        <!-- <el-table-column prop="avg" label="成交均价" align="center">
+        </el-table-column>
+        <el-table-column prop="t_number" label="成交数量" align="center">
+        </el-table-column>-->
+        <!-- <el-table-column label="操作" align="right">
+          <template slot-scope="scope">
+            <a href="javascript:void(0);" @click="orderCancell(scope)" style="color: #4F57EA;">撤单</a>
+          </template>
+        </el-table-column> -->
+      </el-table>
+    </el-tab-pane>
   </el-tabs>
 </template>
 
@@ -50,60 +125,103 @@ export default {
     return {
       aes: new AESCipher(this.$store.state.user.privateKey),
       activeName: 'current',
-      currentCommission: [],
-      tableData: [
-        {
-          name: '买入 STO/USDT',
-          date: '12/10 15:34',
-          price: '3.8575',
-          quantity: '0.124',
-          sum: '0.1283',
-          avg: '3.5402',
-          t_number: '0.0032'
-        }
-      ]
+      currentIntrust: [],
+      historyIntrust: []
     }
   },
+  mounted () {},
   created () {
-    this.getOrders()
-    // this.getOrderbook()
+    this.getTransactions()
+    setInterval(() => {
+      this.getOrders()
+    }, 2000)
+  },
+  computed: {
+    users () {
+      return this.$store.state.user
+    }
   },
   methods: {
     handleClick (tab) {
       if (tab.paneName === 'current') {
         this.getOrders()
-      } else {}
+      } else {
+        this.getTransactions()
+      }
     },
     async getOrders () {
       // eslint-disable-next-line standard/object-curly-even-spacing
-      console.log(this.$store.state.user.account)
-      await this.$rippleApi.getOrders('rH9eX7MFdV9wbNRX1BRTvyGh22Av4iQfUT').then(result => {
-        this.currentCommission = result.reverse()
-        console.log(this.currentCommission)
-      }).catch((err) => {
-        console.log(err)
-      })
-    },
-    async orderCancell (scope) {
-      console.log(scope.row)
-      const address = 'rH9eX7MFdV9wbNRX1BRTvyGh22Av4iQfUT'
-      console.log(address)
-      const orderCancellation = { orderSequence: scope.row.properties.sequence }
-      console.log(orderCancellation)
-      await this.$rippleApi.prepareOrderCancellation(address, orderCancellation).then(async prepared => {
-        let txJSON = prepared.txJSON
-        let secret = await this.aes.decode_data(this.$store.state.user.secret)
-        const txSigned = await this.$rippleApi.sign(txJSON, secret)
-        console.log('撤单开始')
-        await this.$rippleApi.submit(txSigned.signedTransaction).then(async s => {
-          if (s.resultCode === 'tesSUCCESS') {
-            console.log('撤单完成')
-            await this.getOrders()
-          }
-          console.log('撤单失败')
-        }).catch(err => {
+      const address = this.users.account
+      await this.$rippleApi
+        .getOrders(address)
+        .then((result) => {
+          this.currentIntrust = result.reverse()
+        })
+        .catch((err) => {
           console.log(err)
         })
+    },
+    async orderCancell (scope) {
+      const address = this.users.account
+      const orderCancellation = {
+        orderSequence: scope.row.properties.sequence
+      }
+      await this.$rippleApi
+        .prepareOrderCancellation(address, orderCancellation)
+        .then(async (prepared) => {
+          let txJSON = prepared.txJSON
+          let secret = await this.aes.decode_data(this.users.secret)
+          const txSigned = await this.$rippleApi.sign(txJSON, secret)
+          console.log('撤单开始')
+          await this.$rippleApi
+            .submit(txSigned.signedTransaction)
+            .then(async (s) => {
+              if ((await s.resultCode) === 'tesSUCCESS') {
+                this.$message({
+                  message: '撤单成功',
+                  type: 'success'
+                })
+              } else {
+                this.$message.error('撤单失败')
+              }
+            })
+            .catch((err) => {
+              console.log(err)
+            })
+        })
+    },
+    async getTransactions () {
+      const address = this.users.account
+      const options = {
+        excludeFailures: true,
+        types: ['order']
+      }
+      await this.$rippleApi.getTransactions(address, options).then((result) => {
+        console.log(result)
+        if (result.length > 0) {
+          let order = []
+          result.map((x) => {
+            if (x.outcome.orderbookChanges[this.users.account]) {
+              x.outcome.orderbookChanges[this.users.account].map((t) => {
+                if (t.status !== 'created') {
+                  let unit = {}
+                  if (this.$util.replaceCurrency(t.totalPrice.currency) === 'USDT' || this.$util.replaceCurrency(t.totalPrice.currency) === 'HUSD') {
+                    unit.uPrice = this.$h.Div(t.totalPrice.value, t.quantity.value).toString()
+                    unit.quantity = t.totalPrice.value.toString()
+                    unit.tPrice = t.quantity.value.toString()
+                  } else {
+                    unit.uPrice = this.$h.Div(t.quantity.value, t.totalPrice.value).toString()
+                    unit.quantity = t.quantity.value.toString()
+                    unit.tPrice = t.totalPrice.value.toString()
+                  }
+                  x.unit = unit
+                  order.push(x)
+                }
+              })
+            }
+          })
+          this.historyIntrust = order
+        }
       })
     }
   }
@@ -147,6 +265,9 @@ export default {
 .el-table th {
   color: rgba(255, 255, 255, 0.5);
   background-color: unset;
+}
+.el-table td {
+  border-bottom: unset;
 }
 .el-table tr {
   background-color: unset;

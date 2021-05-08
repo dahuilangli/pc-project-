@@ -1,4 +1,3 @@
-
 <template>
   <div class="transaction">
     <div class="buy tr">
@@ -14,9 +13,14 @@
           :step="0.0001"
           id="buyNumber"
         />
-        <el-input style="margin-top: 10px" v-model="buy.qutity" size="small">
+        <el-input
+          style="margin-top: 10px"
+          v-model="buy.qutity"
+          oninput="value=value.replace(/[^0-9.]/g,'')"
+          size="small"
+        >
           <template slot="prepend">买入数量</template>
-          <template slot="append">STO</template>
+          <template slot="append"> {{ coins[0] }}</template>
         </el-input>
       </div>
       <div class="warp_btn">
@@ -26,10 +30,20 @@
         <div class="btn_item" @click="setPrice(1, 'buy')">100%</div>
       </div>
       <div class="gas">
-        <p>可用: 1000USDT</p>
-        <p>交易额: 6523.73</p>
+        <p>可用: {{ usdtQuantity | _thousandth }} {{ coins[1] }}</p>
+        <p>
+          交易额:
+          {{ buy.qutity ? $h.Mul(buy.price, buy.qutity) : 0 | _thousandth }}
+          {{ coins[1] }}
+        </p>
       </div>
-      <div class="buy_btn" onselectstart="javascript:return false;">买入</div>
+      <div
+        class="buy_btn"
+        onselectstart="javascript:return false;"
+        @click="prepareOrder('buy')"
+      >
+        买入
+      </div>
     </div>
     <div class="sell tr">
       <div class="warp_input">
@@ -44,9 +58,14 @@
           :step="0.0001"
           id="sellNumber"
         />
-        <el-input style="margin-top: 10px" v-model="sell.qutity" size="small">
+        <el-input
+          style="margin-top: 10px"
+          v-model="sell.qutity"
+          oninput="value=value.replace(/[^0-9.]/g,'')"
+          size="small"
+        >
           <template slot="prepend">卖出数量</template>
-          <template slot="append">STO</template>
+          <template slot="append">{{ coins[0] }}</template>
         </el-input>
       </div>
       <div class="warp_btn">
@@ -56,22 +75,40 @@
         <div class="btn_item" @click="setPrice(1, 'sell')">100%</div>
       </div>
       <div class="gas">
-        <p>可用: 1000USDT</p>
-        <p>交易额: 6523.73</p>
+        <p>可用: {{ stoQuantity | _thousandth }} {{ coins[0] }}</p>
+        <p>
+          交易额:
+          {{ sell.qutity ? $h.Mul(sell.price, sell.qutity) : 0 | _thousandth }}
+          {{ coins[1] }}
+        </p>
       </div>
-      <div class="sell_btn" onselectstart="javascript:return false;">卖出</div>
+      <div
+        class="sell_btn"
+        onselectstart="javascript:return false;"
+        @click="prepareOrder('sell')"
+      >
+        卖出
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import bus from '@/utils/eventBus.js'
+import AESCipher from '@/utils/aes'
 export default {
   // import引入的组件需要注入到对象中才能使用
+  props: {
+    coin: {
+      type: String,
+      default: 'STO/USDT'
+    }
+  },
   components: {},
   data () {
     // 这里存放数据
     return {
+      aes: new AESCipher(this.$store.state.user.privateKey),
       buy: {
         price: null,
         qutity: null
@@ -79,22 +116,126 @@ export default {
       sell: {
         price: null,
         qutity: null
-      },
-      sum: 100000
+      }
     }
   },
   // 监听属性 类似于data概念
-  computed: {},
+  computed: {
+    usdtQuantity () {
+      let balance = this.$store.getters.balances.find(
+        (x) => x.display === 'USDT'
+      )
+      if (balance) {
+        return balance.value
+      }
+      return 0
+    },
+    stoQuantity () {
+      let balance = this.$store.getters.balances.find(
+        (x) => x.display === 'STO'
+      )
+      if (balance) {
+        return balance.value
+      }
+      return 0
+    },
+    coins () {
+      console.log(this.coin)
+      return this.coin.split('/')
+    }
+  },
   // 监控data中的数据变化
-  watch: {},
+  watch: {
+    coin () {
+      // this.subscribePO()
+      this.$forceUpdate()
+    }
+  },
   // 方法集合
   methods: {
     setPrice (value, item) {
       if (item === 'buy') {
-        this.buy.qutity = this.$h.Mul(this.sum, value)
+        if (this.buy.price > 0) {
+          this.buy.qutity = this.$h
+            .Mul(this.$h.Div(this.usdtQuantity, this.buy.price), value)
+            .toFixed(2)
+        } else {
+          this.buy.qutity = 0
+        }
       } else {
-        this.sell.qutity = this.$h.Mul(this.sum, value)
+        if (this.sell.price > 0) {
+          this.sell.qutity = this.$h
+            .Mul(this.$h.Div(this.usdtQuantity, this.sell.price), value)
+            .toFixed(2)
+        } else {
+          this.sell.qutity = 0
+        }
       }
+    },
+    async prepareOrder (scope) {
+      console.log(scope)
+      const address = this.$store.getters.account
+      console.log(address)
+      let order = {}
+      if (scope === 'buy') {
+        order = {
+          direction: 'buy',
+          quantity: {
+            currency: 'STA',
+            counterparty: 'rUAU22rLt8TbXo5mcZr2JZZMavfS7MtHwG',
+            value: Number(this.buy.qutity).toString()
+          },
+          totalPrice: {
+            currency: 'UST',
+            counterparty: 'r3FnAL25N4dtSiQntx7jRyCtHoYUApQ6C1',
+            value: Number(
+              this.buy.qutity ? this.$h.Mul(this.buy.price, this.buy.qutity) : 0
+            ).toString()
+          }
+          // passive: false,
+          // fillOrKill: true
+        }
+      } else {
+        order = {
+          direction: 'sell',
+          quantity: {
+            currency: 'STA',
+            counterparty: 'rUAU22rLt8TbXo5mcZr2JZZMavfS7MtHwG',
+            value: Number(this.sell.qutity).toString()
+          },
+          totalPrice: {
+            currency: 'UST',
+            counterparty: 'r3FnAL25N4dtSiQntx7jRyCtHoYUApQ6C1',
+            value: Number(
+              this.sell.qutity
+                ? this.$h.Mul(this.sell.price, this.sell.qutity)
+                : 0
+            ).toString()
+          }
+          // passive: false,
+          // fillOrKill: true
+        }
+      }
+      console.log(order)
+      await this.$rippleApi
+        .prepareOrder(address, order)
+        .then(async (prepared) => {
+          let txJSON = prepared.txJSON
+          let secret = await this.aes.decode_data(this.$store.getters.secret)
+          const txSigned = await this.$rippleApi.sign(txJSON, secret)
+          await this.$rippleApi
+            .submit(txSigned.signedTransaction)
+            .then(async (s) => {
+              if ((await s.resultCode) === 'tesSUCCESS') {
+                this.$message({ message: '委托成功', type: 'success' })
+              } else {
+                this.$message({ message: '委托成功', type: 'success' })
+              }
+            })
+            .catch((err) => {
+              console.log(err)
+            })
+        })
     }
   },
   // 生命周期 - 创建完成（可以访问当前this实例）
@@ -126,7 +267,19 @@ export default {
 
     span.append(innerspan)
     innerspan.append(textspan)
-    textspan.append('USDT')
+    textspan.append(this.coins[1])
+
+    const span1 = document.createElement('span')
+    const innerspan1 = document.createElement('span')
+    const textspan1 = document.createElement('span')
+
+    span1.setAttribute('class', 'el-input__suffix')
+    span1.setAttribute('style', 'right:38px !important')
+    innerspan1.setAttribute('class', 'el-input__suffix-inner')
+
+    span1.append(innerspan1)
+    innerspan1.append(textspan1)
+    textspan1.append(this.coins[1])
 
     const sell = document.createElement('span')
     const innerpresell = document.createElement('span')
@@ -146,11 +299,11 @@ export default {
     this.$nextTick(() => {
       document.getElementById('buyNumber').lastElementChild.append(prefix)
       document.getElementById('buyNumber').lastElementChild.prepend(span)
-      document.getElementById('sellNumber').lastElementChild.append(span)
+      document.getElementById('sellNumber').lastElementChild.append(span1)
       document.getElementById('sellNumber').lastElementChild.prepend(sell)
     })
 
-    bus.$on('handicapMsg', data => {
+    bus.$on('handicapMsg', (data) => {
       if (data) {
         this.buy.price = data.price
         this.sell.price = data.price

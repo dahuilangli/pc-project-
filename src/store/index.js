@@ -10,7 +10,8 @@ const store = new Vuex.Store({
   },
   getters: {
     account: state => state.user.account,
-    secret: state => state.user.secret
+    secret: state => state.user.secret,
+    balances: state => state.user.balances
   }
 })
 

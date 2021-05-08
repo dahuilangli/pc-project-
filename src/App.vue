@@ -12,11 +12,47 @@
 </template>
 
 <script>
+import { formatCoinBalance } from '@/utils/ripple'
 import headres from '@/components/headres'
 export default {
   name: 'App',
   components: {
     headres
+  },
+  created () {
+    if (this.isLogin) {
+      this.getAccountAssets()
+    }
+  },
+  computed: {
+    isLogin () {
+      return this.$store.state.user.isLogin
+    }
+  },
+  watch: {
+    isLogin (nVal, oVal) {
+      if (nVal === true) {
+        this.getAccountAssets()
+      }
+    }
+  },
+  methods: {
+    async getAccountAssets () {
+      // 加载资产
+      var ripple = this.$rippleApi
+      if (!ripple.isConnected()) {
+        await ripple.connect().then((res) => {})
+      }
+      await this.$rippleApi
+        .getBalances(this.$store.getters.account)
+        .then((res) => {
+          this.$store
+            .dispatch('SetBalances', formatCoinBalance(res))
+            .then(() => {
+              console.log(this.$store.getters.balances)
+            })
+        })
+    }
   }
 }
 </script>

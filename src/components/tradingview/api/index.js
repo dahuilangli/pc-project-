@@ -7,7 +7,7 @@ class TVjsApi {
     this.symbol = symbol
     this.widgets = null // TODO: tradingview图表
     // eslint-disable-next-line new-cap
-    this.socket = new socket('ws://127.0.0.1:3000')
+    this.socket = new socket('ws://192.168.3.175:3000')
     this.interval = localStorage.getItem('tradingview.resolution') || '1' // 图表周期
     this.cacheData = {} // 图表缓存数据
     this.resolveSymbolinfo = {} // 币种信息
@@ -159,8 +159,8 @@ class TVjsApi {
       case 'subSymbolinfo': // TODO: 币种信息
         // eslint-disable-next-line no-lone-blocks
         {
-          // console.log('币种信息....');
-          // console.log(e.data);
+          console.log('币种信息....')
+          console.log(e.data)
         };
         break
       case 'getBars': // TODO: 获取历史K线数据
@@ -223,8 +223,6 @@ class TVjsApi {
               this.cacheData[ticker][this.cacheData[ticker].length - 1] = barsData
             }
             console.log('订阅数据.....')
-            console.log(this.lastTime)
-            console.log(barsData.time)
             // TODO: 通知图表插件，可以开始增量更新的渲染了
             this.datafeeds.barsUpdater.updateData()
           }
@@ -277,12 +275,16 @@ class TVjsApi {
    * @param {*} onLoadedCallback
    */
   getBars (symbolInfo, resolution, rangeStartDate, rangeEndDate, onLoadedCallback) {
+    // console.log('getBars')
     let ticker = `${symbolInfo.name}-${resolution}` // TODO: GDEXGDC/GXC-1D
     let tickerload = ticker + 'load' // TODO: GDEXGDC/GXC-1Dload
     let tickerstate = ticker + 'state' // TODO: GDEXGDC/GXC-1Dstate
     if (!this.cacheData[ticker] && !this.cacheData[tickerstate]) { // TODO: 如果缓存没有数据，而且未发出请求，记录当前节点开始时间
+      console.log('缓存没有数据，而且未发出请求，记录当前节点开始时间')
       this.cacheData[tickerload] = rangeStartDate
       // 发起请求，从websocket获取当前时间段的数据
+      // console.log('发起请求，从websocket获取当前时间段的数据')
+      // console.log(rangeStartDate)
       this.initMessage(symbolInfo, resolution, rangeStartDate, rangeEndDate, onLoadedCallback)
       // 设置状态为true
       this.cacheData[tickerstate] = !0
@@ -291,6 +293,7 @@ class TVjsApi {
     }
     // TODO: 获取历史记录
     if (!this.cacheData[tickerload] || this.cacheData[tickerload] > rangeStartDate) { // TODO: 如果缓存有数据，但是没有当前时间段的数据，更新当前节点时间
+      console.log('获取历史记录')
       this.cacheData[tickerload] = rangeStartDate
       this.initMessage(symbolInfo, resolution, rangeStartDate, rangeEndDate, onLoadedCallback)
       this.cacheData[tickerstate] = !0
@@ -358,7 +361,7 @@ class TVjsApi {
     if (resolution <= 60) {
       resolutionstr = resolution + 'm'
     } else if (resolution === 240) {
-      resolutionstr = '4h'
+      resolutionstr = '4H'
     } else if (resolution === '1D') {
       resolutionstr = '1d'
     } else {

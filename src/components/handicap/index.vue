@@ -21,12 +21,13 @@
       </div>
       <div class="entrust_body">
         <div class="title_wrap">
-          <span class="price">价格(USDT)</span
-          ><span class="amount">数量(STO)</span>
+          <span class="price">价格({{coins[1]}})</span
+          ><span class="amount">数量({{coins[0]}})</span>
         </div>
         <div class="body_warp">
           <div class="order-book-list asks">
             <div
+              v-show="active !== 'top'"
               class="sale"
               v-for="ask of asks"
               :key="ask.price"
@@ -51,6 +52,7 @@
           </div>
           <div class="order-book-list bids">
             <div
+              v-show="active !== 'bottom'"
               class="sell"
               style="width: 100%"
               v-for="bid of bids"
@@ -74,14 +76,14 @@
 </template>
 
 <script>
-import { STO, USDT } from '@/utils/gateway.js'
+import { STO, STE, USDT, HUSD } from '@/utils/gateway.js'
 import bus from '@/utils/eventBus.js'
 export default {
   name: 'handicap',
   props: {
-    show: {
-      type: Boolean,
-      default: false
+    coin: {
+      type: String,
+      default: 'STO/USDT'
     }
   },
   data () {
@@ -93,6 +95,9 @@ export default {
     }
   },
   computed: {
+    coins () {
+      return this.coin.split('/')
+    },
     asksSum () {
       return Math.max.apply(
         Math,
@@ -113,6 +118,9 @@ export default {
   watch: {
     show () {
       this.visible = this.show
+    },
+    coin () {
+      this.subscribePO()
     }
   },
   created () {
@@ -122,31 +130,9 @@ export default {
     initHandicap () {
       this.$rippleApi.connect().then(() => {
         // 'transaction' can be replaced with the relevant `type` from the table above
-        this.$rippleApi.connection.on('transaction', (event) => {
+        this.$rippleApi.on('transaction', (event) => {
           // Do something useful with `event`
           this.subscribePO()
-          // if (event) {
-          // console.log('有新交易')
-          // console.log(event)
-          // if (event.type === 'transaction' && event.engine_result === 'tesSUCCESS') {
-          //   if (event.transaction.TransactionType === 'OfferCreate') {
-          //     if (typeof event.transaction.TakerGets === 'object' && typeof event.transaction.TakerPays === 'object') {
-          //       if (event.transaction.TakerGets.currency === 'UST') {
-          //         let price = this.$h.Div(event.transaction.TakerGets.value, event.transaction.TakerPays.value)
-          //         console.log(price)
-          //         this.bids = this.dataChange([...this.bids, { price, quality: event.transaction.TakerPays.value }])
-          //       } else {
-          //         let price = this.$h.Div(event.transaction.TakerPays.value, event.transaction.TakerGets.value)
-          //         console.log(price)
-
-          //         this.bids = this.dataChange([...this.bids, { price, quality: event.transaction.TakerGets.value }])
-          //       }
-          //     } else if (typeof event.transaction.TakerGets === 'string') {
-
-          //     }
-          //   }
-          // }
-          // }
         })
         this.subscribePO()
       })
@@ -156,8 +142,8 @@ export default {
         .request('subscribe', {
           books: [
             {
-              taker_pays: STO,
-              taker_gets: USDT,
+              taker_pays: this.coins[0] === 'STO' ? STO : STE,
+              taker_gets: this.coins[1] === 'USDT' ? USDT : HUSD,
               both: true,
               snapshot: true
             }
@@ -170,19 +156,16 @@ export default {
             response.asks.map((ask) => {
               // eslint-disable-next-line standard/object-curly-even-spacing
               asks.push({
-                price: ask.quality,
-                quality: Number(parseFloat(ask.TakerGets['value']).toFixed(2))
+                price: this.coins[0] === 'STE' ? this.$h.Div(ask.TakerPays['value'], this.$h.Div(ask.TakerGets, Math.pow(10, 6))) : ask.quality,
+                quality: Number(parseFloat(typeof ask.TakerGets === 'string' ? this.$h.Div(ask.TakerGets, Math.pow(10, 6)) : ask.TakerGets['value']).toFixed(2))
               })
             })
             this.asks = this.dataChange(asks, 'asks')
             response.bids.map((bid) => {
               // eslint-disable-next-line standard/object-curly-even-spacing
               bids.push({
-                price: this.$h.Div(
-                  bid.TakerGets['value'],
-                  bid.TakerPays['value']
-                ),
-                quality: Number(parseFloat(bid.TakerPays['value']).toFixed(2))
+                price: this.$h.Div(typeof bid.TakerGets === 'string' ? this.$h.Div(bid.TakerGets, Math.pow(10, 6)) : bid.TakerGets['value'], typeof bid.TakerPays === 'string' ? this.$h.Div(bid.TakerPays, Math.pow(10, 6)) : bid.TakerPays['value']),
+                quality: Number(parseFloat(typeof bid.TakerPays === 'string' ? this.$h.Div(bid.TakerPays, Math.pow(10, 6)) : bid.TakerPays['value']).toFixed(2))
               })
             })
             this.bids = this.dataChange(bids, 'bids')
@@ -228,12 +211,14 @@ export default {
         // n1 - n2  从小到大
       })
       if (dit === 'asks') {
-        return b.slice(b.length - this.gear, b.length)
+        if (b.length >= this.gear) {
+          return b.slice(b.length - this.gear, b.length)
+        }
+        return b
       } else {
         return b.slice(0, this.gear)
       }
     },
-
     sendMessgeToParent (event) {
       bus.$emit('handicapMsg', event)
     }

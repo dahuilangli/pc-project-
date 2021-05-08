@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import { formatCoinBalance } from '../utils/ripple'
 export default {
   name: 'Home',
   data () {
@@ -13,21 +12,10 @@ export default {
   },
   // 加载账号余额
   created () {
-    this.getAccountAssets()
     // this.getHandicap()
   },
   methods: {
-    async getAccountAssets () {
-      // 加载资产
-      var ripple = this.$rippleApi
-      if (!ripple.isConnected()) {
-        await ripple.connect().then((res) => {})
-      }
-      await this.$rippleApi.getBalances('rESrgBXFh78Fa2e2DYjMetv5nqURTYozoy').then(res => {
-        formatCoinBalance(res)
-        console.log(res)
-      })
-    },
+
     // 盘口数据
     async getHandicap () {
       var ripple = this.$rippleApi

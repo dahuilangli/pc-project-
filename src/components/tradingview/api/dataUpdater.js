@@ -95,12 +95,8 @@ class dataUpdater {
       }
 
       const previousBar = bars[bars.length - 2]
-      console.log('isNewBar')
-      console.log(previousBar)
       subscriptionRecord.listener(previousBar)
     }
-    console.log('lastBar')
-    console.log(lastBar)
     subscriptionRecord.lastBarTime = lastBar.time
     subscriptionRecord.listener(lastBar)
   }

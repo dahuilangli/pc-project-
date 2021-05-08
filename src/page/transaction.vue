@@ -1,9 +1,26 @@
 <template>
   <div class="transactions">
     <div class="title_warp">
-      <div class="warp_currency">
-        <i class="el-icon-s-unfold"></i>
-        STO/USDT
+      <div
+        class="warp_currency"
+        onselectstart="javascript:return false;"
+        @click="coinStatus = !coinStatus"
+      >
+        <i class="el-icon-s-unfold"></i> {{coin}}
+        <transition name="el-zoom-in-top">
+          <div class="warp_currency_option" v-show="coinStatus">
+            <div class="option_list">
+              <div
+                class="option_item"
+                v-for="c of coinList"
+                :key="c.currency"
+                @click="setCoin(c)"
+              >
+                {{ c.display }}
+              </div>
+            </div>
+          </div>
+        </transition>
       </div>
       <div class="warp_lastbox">
         <span class="last">53,944.3</span>
@@ -30,11 +47,11 @@
     </div>
     <div class="body_opt">
       <div class="left" ref="element">
-        <kine />
-        <transaction />
+        <kine :coin="coin" />
+        <transaction :coin="coin" />
       </div>
       <div class="right">
-        <handicap/>
+        <handicap :coin="coin" />
       </div>
     </div>
     <div class="body_bottom">
@@ -48,6 +65,7 @@ import handicap from '@/components/handicap'
 import kine from '@/components/tradingview'
 import transaction from '@/components/transaction'
 import commission from '@/components/commission'
+import { coinList } from '@/utils/gateway.js'
 export default {
   name: 'Home',
   components: {
@@ -57,9 +75,18 @@ export default {
     commission
   },
   data () {
-    return {}
+    return {
+      coinList: coinList,
+      coinStatus: false,
+      coin: 'STO/USDT'
+    }
   },
   methods: {
+    setCoin (item) {
+      if (item) {
+        this.coin = item.display
+      }
+    }
   }
 }
 </script>
@@ -81,10 +108,29 @@ export default {
     .warp_currency {
       font-size: 16px;
       font-weight: 600;
-      i {
+      cursor: pointer;
+      position: relative;
+      .warp_currency_option {
+        position: absolute;
+        top: 35px;
+        left: 0;
+        background: $default-card-body;
+        min-width: 123px;
+        min-height: 100px;
+        .option_list {
+          padding: 5px 0;
+          .option_item {
+            padding: 5px;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+          }
+          .option_item:hover {
+            background: #4f57ea;
+          }
+        }
       }
     }
-
     .warp_lastbox {
       display: flex;
       flex-direction: column;

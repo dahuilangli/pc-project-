@@ -50,11 +50,7 @@ class datafeeds {
    */
   getBars (symbolInfo, resolution, rangeStartDate, rangeEndDate, onDataCallback, onErrorCallback) {
     const onLoadedCallback = data => {
-      data && data.length ? onDataCallback(data, {
-        noData: true
-      }) : onDataCallback([], {
-        noData: true
-      })
+      data && data.length ? onDataCallback(data, { noData: true }) : onDataCallback([], { noData: true })
     }
     this.self.getBars(symbolInfo, resolution, rangeStartDate, rangeEndDate, onLoadedCallback)
   }
@@ -86,7 +82,7 @@ class datafeeds {
     return {
       supports_search: false,
       supports_group_request: false,
-      supported_resolutions: ['1', '5', '15', '30', '60', '240', '1D', '5D', '1W', '1M'],
+      supported_resolutions: ['1', '5', '15', '30', '60', '240', '1D', '1W', '1M'],
       supports_marks: true,
       supports_timescale_marks: true,
       supports_time: true
